@@ -1,18 +1,33 @@
 import React from "react";
 
-import * as UI from "@/lib/ui";
-import { Icons } from "@/lib/icons";
 import { brand } from "@/lib/brand";
 
-const { X } = Icons;
+interface Model {
+  id: string;
+  company_id: string;
+  name: string;
+  description: string;
+  release_year: number | null;
+  official_url: string;
+}
+
+interface Company {
+  id: string;
+  name: string;
+  description: string;
+  logo_src: string | null;
+  logo_alt: string | null;
+  prominence_order: number;
+  models: Model[];
+}
 
 const PAGE_META = {
   as_of_date: "14 August 2026",
   snapshot_notice:
-    "A hand-authored point-in-time snapshot of the AI landscape. It is not continuously updated and does not read from any live data feed."
+    "A hand-authored point-in-time snapshot of the AI landscape. It is not continuously updated and does not read from any live data feed.",
 };
 
-const COMPANIES = [
+const COMPANIES: Company[] = [
   {
     id: "openai",
     name: "OpenAI",
@@ -27,7 +42,7 @@ const COMPANIES = [
         name: "GPT-5",
         description: "The current flagship general-purpose model behind ChatGPT.",
         release_year: 2025,
-        official_url: "https://openai.com/index/introducing-gpt-5/"
+        official_url: "https://openai.com/index/introducing-gpt-5/",
       },
       {
         id: "o3",
@@ -35,7 +50,7 @@ const COMPANIES = [
         name: "o3",
         description: "A reasoning model that works through problems step by step before answering.",
         release_year: 2025,
-        official_url: "https://openai.com/index/introducing-o3-and-o4-mini/"
+        official_url: "https://openai.com/index/introducing-o3-and-o4-mini/",
       },
       {
         id: "gpt-4o",
@@ -43,7 +58,7 @@ const COMPANIES = [
         name: "GPT-4o",
         description: "The multimodal workhorse that handles text, images and voice in one model.",
         release_year: 2024,
-        official_url: "https://openai.com/index/hello-gpt-4o/"
+        official_url: "https://openai.com/index/hello-gpt-4o/",
       },
       {
         id: "sora",
@@ -51,7 +66,7 @@ const COMPANIES = [
         name: "Sora",
         description: "Turns a written prompt into a short piece of video.",
         release_year: 2024,
-        official_url: "https://openai.com/sora/"
+        official_url: "https://openai.com/sora/",
       },
       {
         id: "dalle-3",
@@ -59,14 +74,15 @@ const COMPANIES = [
         name: "DALL·E 3",
         description: "Image generation built into ChatGPT.",
         release_year: 2023,
-        official_url: "https://openai.com/index/dall-e-3/"
-      }
-    ]
+        official_url: "https://openai.com/index/dall-e-3/",
+      },
+    ],
   },
   {
     id: "google-deepmind",
     name: "Google DeepMind",
-    description: "Google's combined research arm, shipping the Gemini family across search, Android and Workspace.",
+    description:
+      "Google's combined research arm, shipping the Gemini family across search, Android and Workspace.",
     logo_src: "GD",
     logo_alt: "Google DeepMind logo",
     prominence_order: 2,
@@ -77,7 +93,7 @@ const COMPANIES = [
         name: "Gemini 2.5 Pro",
         description: "The top-end Gemini model, built for long documents and hard reasoning.",
         release_year: 2025,
-        official_url: "https://deepmind.google/technologies/gemini/pro/"
+        official_url: "https://deepmind.google/technologies/gemini/pro/",
       },
       {
         id: "gemini-25-flash",
@@ -85,7 +101,7 @@ const COMPANIES = [
         name: "Gemini 2.5 Flash",
         description: "The fast, cheap sibling used for high-volume everyday tasks.",
         release_year: 2025,
-        official_url: "https://deepmind.google/technologies/gemini/flash/"
+        official_url: "https://deepmind.google/technologies/gemini/flash/",
       },
       {
         id: "veo-3",
@@ -93,7 +109,7 @@ const COMPANIES = [
         name: "Veo 3",
         description: "Generates video clips with matching sound from a prompt.",
         release_year: 2025,
-        official_url: "https://deepmind.google/technologies/veo/"
+        official_url: "https://deepmind.google/technologies/veo/",
       },
       {
         id: "imagen-4",
@@ -101,7 +117,7 @@ const COMPANIES = [
         name: "Imagen 4",
         description: "Google's image generator, strong on typography and fine detail.",
         release_year: 2025,
-        official_url: "https://deepmind.google/technologies/imagen/"
+        official_url: "https://deepmind.google/technologies/imagen/",
       },
       {
         id: "gemma-3",
@@ -109,7 +125,7 @@ const COMPANIES = [
         name: "Gemma 3",
         description: "Small open-weight models anyone can download and run themselves.",
         release_year: 2025,
-        official_url: "https://ai.google.dev/gemma"
+        official_url: "https://ai.google.dev/gemma",
       },
       {
         id: "alphafold",
@@ -117,9 +133,9 @@ const COMPANIES = [
         name: "AlphaFold",
         description: "Predicts the shape of proteins and reshaped biology research.",
         release_year: 2021,
-        official_url: "https://deepmind.google/science/alphafold/"
-      }
-    ]
+        official_url: "https://deepmind.google/science/alphafold/",
+      },
+    ],
   },
   {
     id: "anthropic",
@@ -135,7 +151,7 @@ const COMPANIES = [
         name: "Claude Opus 4.1",
         description: "The most capable Claude, aimed at long agentic and coding work.",
         release_year: 2025,
-        official_url: "https://www.anthropic.com/news/claude-opus-4-1"
+        official_url: "https://www.anthropic.com/news/claude-opus-4-1",
       },
       {
         id: "claude-sonnet-4",
@@ -143,7 +159,7 @@ const COMPANIES = [
         name: "Claude Sonnet 4",
         description: "The balanced everyday model most Claude users actually talk to.",
         release_year: 2025,
-        official_url: "https://www.anthropic.com/news/claude-4"
+        official_url: "https://www.anthropic.com/news/claude-4",
       },
       {
         id: "claude-haiku-35",
@@ -151,7 +167,7 @@ const COMPANIES = [
         name: "Claude Haiku 3.5",
         description: "The lightweight model tuned for speed and volume.",
         release_year: 2024,
-        official_url: "https://www.anthropic.com/claude/haiku"
+        official_url: "https://www.anthropic.com/claude/haiku",
       },
       {
         id: "claude-code",
@@ -159,9 +175,9 @@ const COMPANIES = [
         name: "Claude Code",
         description: "Claude working directly in a developer's terminal and codebase.",
         release_year: null,
-        official_url: "https://www.anthropic.com/claude-code"
-      }
-    ]
+        official_url: "https://www.anthropic.com/claude-code",
+      },
+    ],
   },
   {
     id: "meta-ai",
@@ -177,7 +193,7 @@ const COMPANIES = [
         name: "Llama 4",
         description: "The current open-weight flagship, multimodal from the ground up.",
         release_year: 2025,
-        official_url: "https://ai.meta.com/blog/llama-4-multimodal-intelligence/"
+        official_url: "https://ai.meta.com/blog/llama-4-multimodal-intelligence/",
       },
       {
         id: "llama-33",
@@ -185,7 +201,7 @@ const COMPANIES = [
         name: "Llama 3.3",
         description: "The widely deployed previous generation, still a default for self-hosting.",
         release_year: 2024,
-        official_url: "https://www.llama.com/"
+        official_url: "https://www.llama.com/",
       },
       {
         id: "sam-2",
@@ -193,9 +209,9 @@ const COMPANIES = [
         name: "Segment Anything 2",
         description: "Cuts out any object in an image or video with a single click.",
         release_year: 2024,
-        official_url: "https://ai.meta.com/sam2/"
-      }
-    ]
+        official_url: "https://ai.meta.com/sam2/",
+      },
+    ],
   },
   {
     id: "xai",
@@ -211,7 +227,7 @@ const COMPANIES = [
         name: "Grok 4",
         description: "The current flagship, pitched at reasoning and live search on X.",
         release_year: 2025,
-        official_url: "https://x.ai/news/grok-4"
+        official_url: "https://x.ai/news/grok-4",
       },
       {
         id: "grok-3",
@@ -219,7 +235,7 @@ const COMPANIES = [
         name: "Grok 3",
         description: "The previous generation still serving most free users.",
         release_year: 2025,
-        official_url: "https://x.ai/news/grok-3"
+        official_url: "https://x.ai/news/grok-3",
       },
       {
         id: "aurora",
@@ -227,9 +243,9 @@ const COMPANIES = [
         name: "Aurora",
         description: "xAI's own image generator inside Grok.",
         release_year: 2024,
-        official_url: "https://x.ai/news/grok-image-generation-release"
-      }
-    ]
+        official_url: "https://x.ai/news/grok-image-generation-release",
+      },
+    ],
   },
   {
     id: "mistral",
@@ -245,7 +261,7 @@ const COMPANIES = [
         name: "Mistral Medium 3",
         description: "The main general-purpose model behind Le Chat.",
         release_year: 2025,
-        official_url: "https://mistral.ai/news/mistral-medium-3"
+        official_url: "https://mistral.ai/news/mistral-medium-3",
       },
       {
         id: "mistral-large-2",
@@ -253,7 +269,7 @@ const COMPANIES = [
         name: "Mistral Large 2",
         description: "The high-end model for multilingual and enterprise work.",
         release_year: 2024,
-        official_url: "https://mistral.ai/news/mistral-large-2407"
+        official_url: "https://mistral.ai/news/mistral-large-2407",
       },
       {
         id: "codestral",
@@ -261,14 +277,15 @@ const COMPANIES = [
         name: "Codestral",
         description: "A model trained specifically to write and complete code.",
         release_year: null,
-        official_url: "https://mistral.ai/news/codestral"
-      }
-    ]
+        official_url: "https://mistral.ai/news/codestral",
+      },
+    ],
   },
   {
     id: "microsoft-ai",
     name: "Microsoft AI",
-    description: "Ships AI to a billion desktops through Copilot, and trains small models of its own.",
+    description:
+      "Ships AI to a billion desktops through Copilot, and trains small models of its own.",
     logo_src: "MS",
     logo_alt: "Microsoft AI logo",
     prominence_order: 7,
@@ -279,7 +296,7 @@ const COMPANIES = [
         name: "Phi-4",
         description: "A small model that punches above its size on reasoning tasks.",
         release_year: 2024,
-        official_url: "https://azure.microsoft.com/en-us/products/phi"
+        official_url: "https://azure.microsoft.com/en-us/products/phi",
       },
       {
         id: "mai-voice-1",
@@ -287,7 +304,7 @@ const COMPANIES = [
         name: "MAI-Voice-1",
         description: "Microsoft's in-house speech model used for Copilot's voice.",
         release_year: 2025,
-        official_url: "https://microsoft.ai/news/two-new-in-house-models/"
+        official_url: "https://microsoft.ai/news/two-new-in-house-models/",
       },
       {
         id: "copilot",
@@ -295,34 +312,37 @@ const COMPANIES = [
         name: "Copilot",
         description: "The assistant layer built across Windows, Office and GitHub.",
         release_year: 2023,
-        official_url: "https://copilot.microsoft.com/"
-      }
-    ]
-  }
+        official_url: "https://copilot.microsoft.com/",
+      },
+    ],
+  },
 ];
 
-const pad = (n) => String(n).padStart(2, "0");
+const pad = (n: number): string => String(n).padStart(2, "0");
 
 export default function Screen() {
-  const [active, setActive] = React.useState(COMPANIES[0].id);
-  const sectionRefs = React.useRef({});
+  const [active, setActive] = React.useState<string>(COMPANIES[0].id);
+  const sectionRefs = React.useRef<Record<string, HTMLElement | null>>({});
 
   React.useEffect(() => {
-    const els = Object.values(sectionRefs.current).filter(Boolean);
+    const els = Object.values(sectionRefs.current).filter(
+      (el): el is HTMLElement => el !== null,
+    );
     if (!els.length || typeof IntersectionObserver === "undefined") return;
     const obs = new IntersectionObserver(
-      (entries) => {
+      (entries: IntersectionObserverEntry[]) => {
         entries.forEach((e) => {
-          if (e.isIntersecting && e.target.dataset.cid) setActive(e.target.dataset.cid);
+          const target = e.target as HTMLElement;
+          if (e.isIntersecting && target.dataset.cid) setActive(target.dataset.cid);
         });
       },
-      { rootMargin: "-15% 0px -70% 0px", threshold: 0 }
+      { rootMargin: "-15% 0px -70% 0px", threshold: 0 },
     );
     els.forEach((el) => obs.observe(el));
     return () => obs.disconnect();
   }, []);
 
-  const goTo = (id) => {
+  const goTo = (id: string) => {
     setActive(id);
     const el = sectionRefs.current[id];
     if (el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -405,7 +425,7 @@ export default function Screen() {
                       style={{
                         fontFamily: brand.fontHeading,
                         color: isActive ? accent : "#000000",
-                        textUnderlineOffset: "4px"
+                        textUnderlineOffset: "4px",
                       }}
                     >
                       {c.name}
@@ -429,17 +449,19 @@ export default function Screen() {
             <section
               key={c.id}
               data-cid={c.id}
-              ref={(el) => {
+              ref={(el: HTMLElement | null) => {
                 sectionRefs.current[c.id] = el;
               }}
               aria-labelledby={`${c.id}-heading`}
-              className={"scroll-mt-8 border-t-2 border-black pt-6 " + (i === 0 ? "" : "mt-16 md:mt-24")}
+              className={
+                "scroll-mt-8 border-t-2 border-black pt-6 " + (i === 0 ? "" : "mt-16 md:mt-24")
+              }
             >
               <div className="flex items-start gap-4">
                 {c.logo_src ? (
                   <span
                     role="img"
-                    aria-label={c.logo_alt}
+                    aria-label={c.logo_alt ?? `${c.name} logo`}
                     className="mt-1 flex h-11 w-11 shrink-0 items-center justify-center text-[13px] font-black italic tracking-tight text-white md:h-14 md:w-14 md:text-base"
                     style={{ backgroundColor: "#000000", borderRadius: "0.35rem" }}
                   >
