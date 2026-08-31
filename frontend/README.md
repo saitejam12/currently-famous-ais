@@ -52,3 +52,12 @@ becomes a codebase anyone maintains.
   the screens were written against.
 - `src/lib/brand.ts`, `src/index.css` -- the approved brand, as tokens and as
   CSS variables.
+
+## Editing the content later
+
+This page's content (companies, models and the "as of" date) is a
+hand-authored snapshot, not something wired to a database or a live feed.
+There is no admin screen. To refresh it — add a company, add a model, or
+move the "as of" date forward — and to publish that change, see
+[`HANDOVER.md`](./HANDOVER.md). It is written for whoever owns this content
+next, with no assumption they know React or TypeScript.
