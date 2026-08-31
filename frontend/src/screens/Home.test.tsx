@@ -27,10 +27,17 @@ describe("Home screen — company entries (US-002)", () => {
       {
         name: "Google DeepMind",
         description:
-          "Google's combined research arm, shipping the Gemini family across search, Android and Workspace."
+          "Google's combined research arm, shipping the Gemini family across search, Android and Workspace.",
       },
-      { name: "Anthropic", description: "A safety-focused lab founded by former OpenAI researchers, maker of Claude." },
-      { name: "Meta AI", description: "Facebook's parent company, which gives its Llama models away as open weights." }
+      {
+        name: "Anthropic",
+        description: "A safety-focused lab founded by former OpenAI researchers, maker of Claude.",
+      },
+      {
+        name: "Meta AI",
+        description:
+          "Facebook's parent company, which gives its Llama models away as open weights.",
+      },
     ];
 
     for (const company of companies) {
@@ -68,7 +75,7 @@ describe("Home screen — company entries (US-002)", () => {
     const section = heading.closest("section") as HTMLElement;
 
     expect(section).toHaveTextContent(
-      "The Paris lab that became Europe's answer to the American frontier labs."
+      "The Paris lab that became Europe's answer to the American frontier labs.",
     );
     expect(within(section).queryByRole("img")).not.toBeInTheDocument();
   });
