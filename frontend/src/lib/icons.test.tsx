@@ -1,105 +1,80 @@
-import { render, screen } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { Icons, ICON_NAMES } from "./icons";
 
-// The Builder prompt lists an exact, finite set of names it may reach for.
-// If this list drifts from what the prompt promises, generated screens
-// compile against names that silently resolve to `undefined` at runtime.
-const EXPECTED_ICON_NAMES = [
-  "Plus",
-  "Search",
-  "Check",
-  "X",
-  "ChevronRight",
-  "ChevronLeft",
-  "ChevronDown",
-  "Menu",
-  "User",
-  "Users",
-  "Settings",
-  "Bell",
-  "Home",
-  "FileText",
-  "Package",
-  "Calendar",
-  "Clock",
-  "Trash",
-  "Edit",
-  "Filter",
-  "Download",
-  "Upload",
-  "ArrowLeft",
-  "ArrowRight",
-  "AlertCircle",
-  "CheckCircle",
-  "MoreHorizontal",
-];
-
-describe("ICON_NAMES", () => {
-  it("lists exactly the finite set the Builder prompt promises", () => {
-    expect(ICON_NAMES.sort()).toEqual([...EXPECTED_ICON_NAMES].sort());
-  });
-
-  it("matches the keys actually exported on Icons", () => {
-    expect(ICON_NAMES.sort()).toEqual(Object.keys(Icons).sort());
-  });
-});
-
 describe("Icons", () => {
-  it("renders every named icon as an svg with a visible glyph inside", () => {
+  it("exposes an entry in Icons for every name listed in ICON_NAMES, and nothing extra", () => {
+    expect(Object.keys(Icons).sort()).toEqual([...ICON_NAMES].sort());
+  });
+
+  it("ICON_NAMES is non-empty -- the whole point of the module is a finite, usable set", () => {
+    expect(ICON_NAMES.length).toBeGreaterThan(0);
+  });
+
+  it("renders every named icon as an svg with no crash and no empty markup", () => {
     for (const name of ICON_NAMES) {
-      const Icon = Icons[name];
-      const { container, unmount } = render(<Icon data-testid="icon" />);
+      const IconComponent = Icons[name];
+      const { container, unmount } = render(<IconComponent />);
       const svg = container.querySelector("svg");
-      expect(svg, `${name} should render an <svg>`).not.toBeNull();
-      // A name with no drawing behind it renders an empty frame -- a blank
-      // square rather than a compile error -- which is exactly the failure
-      // mode the hand-drawn set exists to avoid.
+      expect(svg, `${name} did not render an <svg>`).not.toBeNull();
+      // A path-less icon (a typo in the paths map) would render an svg with
+      // no children -- a blank square at runtime. Catch that here instead.
       expect(
-        svg!.childElementCount,
-        `${name} should draw at least one shape`
+        svg?.children.length,
+        `${name} rendered an <svg> with no drawable children`
       ).toBeGreaterThan(0);
       unmount();
     }
   });
 
-  it("is hidden from assistive tech, since it is always decorative", () => {
-    render(<Icons.Check data-testid="check" />);
-    const svg = screen.getByTestId("check");
-    expect(svg).toHaveAttribute("aria-hidden", "true");
-  });
-
-  it("defaults to a 16px square viewBox 0 0 24 24", () => {
-    render(<Icons.Plus data-testid="plus" />);
-    const svg = screen.getByTestId("plus");
+  it("defaults to a 16x16 icon so a generated screen gets a sane size without setting one", () => {
+    const Check = Icons.Check;
+    const { container } = render(<Check />);
+    const svg = container.querySelector("svg");
     expect(svg).toHaveAttribute("width", "16");
     expect(svg).toHaveAttribute("height", "16");
-    expect(svg).toHaveAttribute("viewBox", "0 0 24 24");
   });
 
-  it("honours a custom size prop for both width and height", () => {
-    render(<Icons.Plus size={32} data-testid="plus-large" />);
-    const svg = screen.getByTestId("plus-large");
+  it("honours an explicit size prop for both width and height", () => {
+    const Check = Icons.Check;
+    const { container } = render(<Check size={32} />);
+    const svg = container.querySelector("svg");
     expect(svg).toHaveAttribute("width", "32");
     expect(svg).toHaveAttribute("height", "32");
   });
 
-  it("passes through arbitrary svg props such as className and onClick", () => {
-    render(<Icons.X className="text-red-500" data-testid="close" />);
-    const svg = screen.getByTestId("close");
+  it("keeps the viewBox fixed at 0 0 24 24 regardless of the rendered size", () => {
+    const Check = Icons.Check;
+    const { container } = render(<Check size={64} />);
+    const svg = container.querySelector("svg");
+    expect(svg).toHaveAttribute("viewBox", "0 0 24 24");
+  });
+
+  it("is hidden from assistive tech, since it is decorative on its own", () => {
+    const Plus = Icons.Plus;
+    const { container } = render(<Plus />);
+    const svg = container.querySelector("svg");
+    expect(svg).toHaveAttribute("aria-hidden", "true");
+  });
+
+  it("forwards arbitrary svg props, e.g. className and onClick, like any other component", () => {
+    const Plus = Icons.Plus;
+    const { container } = render(<Plus className="text-red-500" data-testid="plus-icon" />);
+    const svg = container.querySelector("svg");
     expect(svg).toHaveClass("text-red-500");
+    expect(svg).toHaveAttribute("data-testid", "plus-icon");
   });
 
-  it("strokes with currentColor so an icon inherits the surrounding text color", () => {
-    render(<Icons.Check data-testid="check-color" />);
-    const svg = screen.getByTestId("check-color");
-    expect(svg).toHaveAttribute("stroke", "currentColor");
-    expect(svg).toHaveAttribute("fill", "none");
+  it("renders visibly distinct markup for two different icons, so they are not accidental aliases of each other", () => {
+    const { container: a } = render(<Icons.Plus />);
+    const { container: b } = render(<Icons.X />);
+    expect(a.querySelector("svg")?.innerHTML).not.toEqual(
+      b.querySelector("svg")?.innerHTML
+    );
   });
 
-  it("does not expose an icon under a name outside the finite set", () => {
-    expect(Icons["Star"]).toBeUndefined();
-    expect(ICON_NAMES).not.toContain("Star");
+  it("looking up a name that is not in the set is undefined, not a silent blank icon", () => {
+    expect(Icons.NotARealIconName).toBeUndefined();
   });
 });

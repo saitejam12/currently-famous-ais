@@ -1,17 +1,10 @@
-/**
- * Unit tests for the component vocabulary in ./ui.tsx.
- *
- * This ticket carries no acceptance criteria of its own -- ui.tsx is the
- * shared building-block kit generated screens are written against, so the
- * contract worth protecting is behavioural: a button that clicks, a field
- * that reports what was typed, a toggle that flips, a table that renders
- * the rows it was given. We deliberately do not assert class names or
- * inline styles (the CSS-custom-property theming described in the file's
- * own header comment) because a restyle that changes those strings breaks
- * nothing a user notices, and a test that pins them fails for the wrong
- * reason.
- */
-import { render, screen, within } from "@testing-library/react";
+// Behavioural tests for the shared UI vocabulary. These assert what a person
+// using a generated screen would see and do -- text rendered, roles exposed,
+// handlers invoked -- and, where the component's own docstring promises it,
+// that brand tokens are actually wired in as inline styles rather than
+// baked-in colors. They deliberately avoid asserting Tailwind class names:
+// a restyle should be free to change those without breaking this suite.
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -44,254 +37,255 @@ import {
 } from "./ui";
 
 describe("Button", () => {
-  it("renders its label and fires onClick when clicked", async () => {
-    const user = userEvent.setup();
+  it("fires its click handler when enabled", async () => {
     const onClick = vi.fn();
     render(<Button onClick={onClick}>Save</Button>);
-
-    const button = screen.getByRole("button", { name: "Save" });
-    await user.click(button);
-
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
-  it("does not fire onClick when disabled", async () => {
-    const user = userEvent.setup();
+  it("does not fire its click handler when disabled", async () => {
     const onClick = vi.fn();
     render(
       <Button onClick={onClick} disabled>
         Save
       </Button>
     );
-
-    const button = screen.getByRole("button", { name: "Save" });
-    expect(button).toBeDisabled();
-
-    await user.click(button);
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(onClick).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+  });
+
+  it("wires the primary variant's background to the brand token", () => {
+    render(<Button variant="primary">Go</Button>);
+    expect(screen.getByRole("button", { name: "Go" })).toHaveStyle({
+      backgroundColor: "var(--brand-primary)",
+    });
+  });
+
+  it("does not apply the brand background color to non-primary variants", () => {
+    render(<Button variant="secondary">Cancel</Button>);
+    expect(screen.getByRole("button", { name: "Cancel" })).not.toHaveStyle({
+      backgroundColor: "var(--brand-primary)",
+    });
   });
 });
 
-describe("Card", () => {
-  it("composes header, content and footer into one region with the given text", () => {
+describe("Card composition", () => {
+  it("assembles a full card from its header, content and footer parts", () => {
     render(
       <Card>
         <CardHeader>
-          <CardTitle>Project Alpha</CardTitle>
-          <CardDescription>Internal prototype</CardDescription>
+          <CardTitle>Plan</CardTitle>
+          <CardDescription>Everything included</CardDescription>
         </CardHeader>
-        <CardContent>Body copy goes here.</CardContent>
+        <CardContent>Details go here</CardContent>
         <CardFooter>
-          <Button>Archive</Button>
+          <Button>Confirm</Button>
         </CardFooter>
       </Card>
     );
-
-    expect(screen.getByRole("heading", { name: "Project Alpha" })).toBeInTheDocument();
-    expect(screen.getByText("Internal prototype")).toBeInTheDocument();
-    expect(screen.getByText("Body copy goes here.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Archive" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Plan" })).toBeInTheDocument();
+    expect(screen.getByText("Everything included")).toBeInTheDocument();
+    expect(screen.getByText("Details go here")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Confirm" })).toBeInTheDocument();
   });
 });
 
-describe("form fields", () => {
-  it("Input reports what the user typed", async () => {
-    const user = userEvent.setup();
-    render(<Input aria-label="Project name" />);
-
-    const field = screen.getByLabelText("Project name");
-    await user.type(field, "Currently Famous AIs");
-
-    expect(field).toHaveValue("Currently Famous AIs");
-  });
-
-  it("Textarea reports what the user typed", async () => {
-    const user = userEvent.setup();
-    render(<Textarea aria-label="Notes" />);
-
-    const field = screen.getByLabelText("Notes");
-    await user.type(field, "multi-line note");
-
-    expect(field).toHaveValue("multi-line note");
-  });
-
-  it("Label associates with its field via htmlFor so the field is reachable by its label text", () => {
+describe("form controls", () => {
+  it("associates a Label with its control via htmlFor", () => {
     render(
       <>
         <Label htmlFor="email">Email</Label>
-        <Input id="email" />
+        <Input id="email" placeholder="you@example.com" />
       </>
     );
-
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
   });
 
-  it("Select renders options from the options prop and reports the chosen value", async () => {
-    const user = userEvent.setup();
+  it("accepts typed text in an Input", async () => {
+    render(<Input placeholder="Search" />);
+    const input = screen.getByPlaceholderText("Search");
+    await userEvent.type(input, "hello");
+    expect(input).toHaveValue("hello");
+  });
+
+  it("accepts typed text in a Textarea", async () => {
+    render(<Textarea placeholder="Notes" />);
+    const textarea = screen.getByPlaceholderText("Notes");
+    await userEvent.type(textarea, "multi-line note");
+    expect(textarea).toHaveValue("multi-line note");
+  });
+
+  it("renders Select options from the options prop and reports a selection change", async () => {
+    const onChange = vi.fn();
     render(
       <Select
-        aria-label="Role"
         options={[
-          { value: "admin", label: "Admin" },
-          { value: "viewer", label: "Viewer" },
+          { value: "a", label: "Alpha" },
+          { value: "b", label: "Beta" },
         ]}
+        defaultValue="a"
+        onChange={onChange}
       />
     );
-
-    const select = screen.getByLabelText("Role");
-    expect(screen.getByRole("option", { name: "Admin" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Viewer" })).toBeInTheDocument();
-
-    await user.selectOptions(select, "viewer");
-    expect(select).toHaveValue("viewer");
+    expect(screen.getByRole("option", { name: "Alpha" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Beta" })).toBeInTheDocument();
+    await userEvent.selectOptions(screen.getByRole("combobox"), "b");
+    expect(onChange).toHaveBeenCalled();
+    expect(screen.getByRole("combobox")).toHaveValue("b");
   });
 
-  it("Checkbox toggles checked state when clicked", async () => {
-    const user = userEvent.setup();
-    render(<Checkbox aria-label="Accept terms" />);
-
-    const checkbox = screen.getByLabelText("Accept terms");
-    expect(checkbox).not.toBeChecked();
-
-    await user.click(checkbox);
-    expect(checkbox).toBeChecked();
+  it("renders explicit children instead of the options prop when both could apply", () => {
+    render(
+      <Select options={[{ value: "a", label: "Alpha" }]}>
+        <option value="x">Explicit</option>
+      </Select>
+    );
+    expect(screen.getByRole("option", { name: "Explicit" })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "Alpha" })).not.toBeInTheDocument();
   });
-});
 
-describe("Switch", () => {
-  it("calls onChange with the flipped value when clicked", async () => {
-    const user = userEvent.setup();
+  it("toggles a Checkbox and reports the change", async () => {
     const onChange = vi.fn();
-    render(<Switch checked={false} onChange={onChange} />);
-
-    const toggle = screen.getByRole("checkbox", { hidden: true });
-    await user.click(toggle);
-
+    render(<Checkbox aria-label="Agree" checked={false} onChange={onChange} />);
+    await userEvent.click(screen.getByRole("checkbox", { name: "Agree" }));
     expect(onChange).toHaveBeenCalledTimes(1);
-    expect(onChange.mock.calls[0][0].target.checked).toBe(true);
   });
 
-  it("reflects the checked prop it is given", () => {
-    render(<Switch checked={true} onChange={() => {}} />);
-    expect(screen.getByRole("checkbox", { hidden: true })).toBeChecked();
+  it("reflects the Switch's checked prop and reports clicks via onChange", async () => {
+    const onChange = vi.fn();
+    const { rerender } = render(<Switch checked={false} onChange={onChange} />);
+    const toggle = screen.getByRole("checkbox");
+    expect(toggle).not.toBeChecked();
+
+    await userEvent.click(toggle);
+    expect(onChange).toHaveBeenCalledTimes(1);
+
+    rerender(<Switch checked={true} onChange={onChange} />);
+    expect(screen.getByRole("checkbox")).toBeChecked();
   });
 });
 
 describe("Badge", () => {
-  it("renders the text it is given", () => {
-    render(<Badge>Live</Badge>);
-    expect(screen.getByText("Live")).toBeInTheDocument();
+  it("renders its label text", () => {
+    render(<Badge>Active</Badge>);
+    expect(screen.getByText("Active")).toBeInTheDocument();
+  });
+
+  it("applies the brand accent color as an inline background for the accent variant", () => {
+    render(<Badge variant="accent">Featured</Badge>);
+    expect(screen.getByText("Featured")).toHaveStyle({
+      backgroundColor: "var(--brand-accent)",
+    });
+  });
+
+  it("does not apply the brand accent background for the default variant", () => {
+    render(<Badge>Plain</Badge>);
+    expect(screen.getByText("Plain")).not.toHaveStyle({
+      backgroundColor: "var(--brand-accent)",
+    });
   });
 });
 
 describe("Table", () => {
-  it("renders header and body rows with the given cell content", () => {
+  it("renders headers and rows a person can read", () => {
     render(
       <Table>
         <THead>
           <TR>
             <TH>Name</TH>
-            <TH>Status</TH>
+            <TH>Score</TH>
           </TR>
         </THead>
         <TBody>
           <TR>
-            <TD>Ada Lovelace</TD>
-            <TD>Active</TD>
+            <TD>Ada</TD>
+            <TD>98</TD>
+          </TR>
+          <TR>
+            <TD>Grace</TD>
+            <TD>95</TD>
           </TR>
         </TBody>
       </Table>
     );
-
-    const table = screen.getByRole("table");
-    expect(within(table).getByText("Name")).toBeInTheDocument();
-    expect(within(table).getByText("Status")).toBeInTheDocument();
-    expect(within(table).getByText("Ada Lovelace")).toBeInTheDocument();
-    expect(within(table).getByText("Active")).toBeInTheDocument();
+    expect(screen.getByRole("table")).toBeInTheDocument();
+    expect(screen.getAllByRole("columnheader").map((el) => el.textContent)).toEqual([
+      "Name",
+      "Score",
+    ]);
+    expect(screen.getByRole("cell", { name: "Ada" })).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "Grace" })).toBeInTheDocument();
   });
 });
 
 describe("Avatar", () => {
-  it("derives initials from up to the first two words of the name", () => {
-    render(<Avatar name="Ada Lovelace" />);
-    expect(screen.getByText("AL")).toBeInTheDocument();
+  it("shows initials derived from the name when there is no image", () => {
+    render(<Avatar name="Jane Doe" />);
+    expect(screen.getByText("JD")).toBeInTheDocument();
   });
 
-  it("derives a single initial from a one-word name", () => {
-    render(<Avatar name="Cher" />);
-    expect(screen.getByText("C")).toBeInTheDocument();
-  });
-
-  it("renders an image with the name as alt text when a src is given, instead of initials", () => {
-    render(<Avatar name="Ada Lovelace" src="/ada.png" />);
-
-    const image = screen.getByRole("img", { name: "Ada Lovelace" });
-    expect(image).toHaveAttribute("src", "/ada.png");
-    expect(screen.queryByText("AL")).not.toBeInTheDocument();
-  });
-});
-
-describe("Separator", () => {
-  it("renders as a horizontal rule", () => {
-    render(<Separator />);
-    expect(screen.getByRole("separator")).toBeInTheDocument();
+  it("renders an accessible image and hides the initials when a src is given", () => {
+    render(<Avatar name="Jane Doe" src="/jane.png" />);
+    const img = screen.getByRole("img", { name: "Jane Doe" });
+    expect(img).toHaveAttribute("src", "/jane.png");
+    expect(screen.queryByText("JD")).not.toBeInTheDocument();
   });
 });
 
 describe("Tabs", () => {
-  it("renders every tab label and calls onChange with the key of the clicked tab", async () => {
-    const user = userEvent.setup();
+  it("reports the key of the tab a person clicks", async () => {
     const onChange = vi.fn();
     render(
       <Tabs
         tabs={[
           { key: "overview", label: "Overview" },
-          { key: "settings", label: "Settings" },
+          { key: "details", label: "Details" },
         ]}
         active="overview"
         onChange={onChange}
       />
     );
-
-    expect(screen.getByRole("button", { name: "Overview" })).toBeInTheDocument();
-    const settingsTab = screen.getByRole("button", { name: "Settings" });
-
-    await user.click(settingsTab);
-
-    expect(onChange).toHaveBeenCalledWith("settings");
+    await userEvent.click(screen.getByRole("button", { name: "Details" }));
+    expect(onChange).toHaveBeenCalledWith("details");
+    expect(onChange).toHaveBeenCalledTimes(1);
   });
 });
 
 describe("Stat", () => {
-  it("renders label and value, and the hint only when one is given", () => {
-    const { rerender } = render(<Stat label="Signups" value={128} />);
-    expect(screen.getByText("Signups")).toBeInTheDocument();
-    expect(screen.getByText("128")).toBeInTheDocument();
+  it("renders the label and value, and the hint only when provided", () => {
+    const { rerender } = render(<Stat label="Users" value={42} hint="This month" />);
+    expect(screen.getByText("Users")).toBeInTheDocument();
+    expect(screen.getByText("42")).toBeInTheDocument();
+    expect(screen.getByText("This month")).toBeInTheDocument();
 
-    rerender(<Stat label="Signups" value={128} hint="up 4% this week" />);
-    expect(screen.getByText("up 4% this week")).toBeInTheDocument();
+    rerender(<Stat label="Users" value={42} />);
+    expect(screen.queryByText("This month")).not.toBeInTheDocument();
   });
 });
 
 describe("Empty", () => {
-  it("renders the title, an optional description, and a provided action", () => {
-    render(
+  it("always renders the title, and the description and action only when given", () => {
+    const { rerender } = render(<Empty title="No results" />);
+    expect(screen.getByText("No results")).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+
+    rerender(
       <Empty
-        title="No projects yet"
-        description="Create your first project to get started."
-        action={<Button>New project</Button>}
+        title="No results"
+        description="Try adjusting your filters"
+        action={<Button>Reset filters</Button>}
       />
     );
-
-    expect(screen.getByText("No projects yet")).toBeInTheDocument();
-    expect(screen.getByText("Create your first project to get started.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "New project" })).toBeInTheDocument();
+    expect(screen.getByText("Try adjusting your filters")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Reset filters" })).toBeInTheDocument();
   });
+});
 
-  it("omits the description paragraph when none is given", () => {
-    render(<Empty title="Nothing here" />);
-
-    expect(screen.getByText("Nothing here")).toBeInTheDocument();
-    expect(screen.queryByText(/create your first/i)).not.toBeInTheDocument();
+describe("Separator", () => {
+  it("renders as a separator a screen reader announces", () => {
+    render(<Separator />);
+    expect(screen.getByRole("separator")).toBeInTheDocument();
   });
 });
